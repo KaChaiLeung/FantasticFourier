@@ -1,12 +1,25 @@
 import numpy as np
-from scipy.fft import fft, fftfreq
+import matplotlib.pyplot as plt
+import pyaudio as pa
+import struct
 
-# Need to input y-data, sample rate and duration of clip.
-def ft(data, sample_rate, duration):
+# Defining constants
+CHUNK = 1024*2
+FORMAT = pa.paInt16
+CHANNELS = 1
+RATE = 44100 # Hz
 
-    samples = sample_rate * duration # Number of samples
-    
-    ftdata = fft(data) # Fourier transform on y-data
-    ftdom = fftfreq(samples, 1 / sample_rate) # Converting to frequency domain; number of samples & duration of sample
+# Preparing for audio input
+p = pa.PyAudio()
 
-    return ftdom, ftdata # Returning data to be plotted.
+stream = p.open(
+    format = FORMAT,
+    channels = CHANNELS,
+    rate = RATE,
+    input = True,
+    output = True,
+    frames_per_buffer = CHUNK
+)
+
+# Reading data from mic
+data = stream.read(CHUNK)
