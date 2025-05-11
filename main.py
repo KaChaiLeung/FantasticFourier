@@ -3,22 +3,16 @@ import struct
 import numpy as np
 import matplotlib.pyplot as plt
 
-# use this backend to display in separate Tk window
-%matplotlib tk
-
 # constants
-CHUNK = 1024 * 2             # samples per frame
-FORMAT = pa.paInt16     # audio format (bytes per sample?)
-CHANNELS = 1                 # single channel for microphone
-RATE = 44100                 # samples per second
+CHUNK = 1024 * 2
+FORMAT = pa.paInt16
+CHANNELS = 1
+RATE = 44100
 
-# create matplotlib figure and axes
-fig, ax = plt.subplots(1, figsize=(15, 7))
-
-# pyaudio class instance
+# PyAudio instance
 p = pa.PyAudio()
 
-# stream object to get data from microphone
+# Open stream
 stream = p.open(
     format=FORMAT,
     channels=CHANNELS,
@@ -28,19 +22,40 @@ stream = p.open(
     frames_per_buffer=CHUNK
 )
 
-# Initialising plots
+# Initialize plot
 fig, ax = plt.subplots()
-x = np.arange(0, 2*CHUNK, 2)
-line, = ax.plot(x, np.random.rand(CHUNK), 'r')
-ax.set_ylim(-10000, 10000) 
+x = np.arange(0, 2 * CHUNK, 2)
+line, = ax.plot(x, np.zeros(CHUNK), 'r')
+ax.set_ylim(-10000, 10000)
 ax.set_xlim(0, CHUNK)
 fig.show()
 
+# Flag to stop loop
+running = True
 
-# Loop to take in data from mic
-while True:
-    data = stream.read(CHUNK)
-    data_int = struct.unpack(str(CHUNK) + 'h', data)
-    line.set_ydata(data_int)
-    fig.canvas.draw()
-    fig.canvas.flush_events()
+# Function to handle key press
+def on_key(event):
+    global running
+    if event.key == 'q': # q to exit
+        print("Stopping program.")
+        running = False
+
+# Connect key press event
+fig.canvas.mpl_connect('key_press_event', on_key)
+
+# Audio loop
+try:
+    while running:
+        data = stream.read(CHUNK, exception_on_overflow=False)
+        data_int = struct.unpack(str(CHUNK) + 'h', data)
+        line.set_ydata(data_int)
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+
+except Exception as e:
+    print("Error:", e)
+
+finally:
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
