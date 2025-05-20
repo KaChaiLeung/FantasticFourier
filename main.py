@@ -9,10 +9,12 @@ import time
 matplotlib.use('TkAgg') # To open another window
 
 # Constants
-CHUNK = 1024 * 4 # samples per frame
+CHUNK = 1024 * 2 # samples per frame
 FORMAT = pa.paInt16 # audio format
 CHANNELS = 1 # single channel
 RATE = 44100 # samples per second
+
+f_lim = 24000
 
 # PyAudio instance
 p = pa.PyAudio()
@@ -35,8 +37,8 @@ line, = ax1.plot(x, np.zeros(CHUNK), 'r', lw=1)
 line_fft, = ax2.plot(x_fft, np.zeros(CHUNK), 'g', lw=1)
 ax1.set_ylim(-10000, 10000)
 ax1.set_xlim(0, CHUNK)
-ax2.set_ylim(0,10)
-ax2.set_xlim(0, 1000)
+ax2.set_ylim(0,14)
+ax2.set_xlim(0, f_lim)
 fig.show()
 
 # Flag to stop loop
@@ -63,7 +65,7 @@ try:
         line.set_ydata(data_int)
 
         y_fft = fft(data_int)
-        line_fft.set_ydata(np.abs(y_fft[0:CHUNK]) * 2 / (256 * CHUNK))
+        line_fft.set_ydata(np.abs(y_fft[0:CHUNK]) * 2 / (128 * CHUNK))
 
         fig.canvas.draw()
         fig.canvas.flush_events()
